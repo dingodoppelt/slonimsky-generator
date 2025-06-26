@@ -1,7 +1,5 @@
 // Global Constants
 const OCTAVE_DISPLACEMENT = 2;
-const BREAK_EVERY_X_NOTES = 16;
-const BEAM_EVERY_X_NOTES = 4;
 const NODE_START_OFFSET = 48;
 
 
@@ -12,23 +10,41 @@ const NODE_START_OFFSET = 48;
  * @returns {string} - abcjs string format
  */
 
-function convertToAbcString(data) {
-    // Headers (4/4 in semi quavers)
-    let compiled = "M: 4/4\n" + "L: 1/16\n";
+function convertToAbcString(data, beams, breaks) {
+    let compiled = "M:\nL: 1/16\n";
     let noteCount = 1;
-    // Process each note number in the data
-    for(let i=0; i < data.length; i++) {
-        // Convert into the ABC string format
-        compiled = compiled + convertNumberToNote(data[i])
+    // Buffer for saving accidentals within the bar
+    let accBuffer = {};
+
+    for (let i = 0; i < data.length; i++) {
+        let converted = convertNumberToNote(data[i]);
+        let natural = converted.replace(/[_^]/g, ""); // Extract note letter
+
+        // Handle sharps and naturals
+        if (/^[\^_]/.test(converted)) {
+            accBuffer[natural] = true;
+        } else {
+            // If previously sharp, and now natural, add '='
+            if (accBuffer[natural]) {
+                converted = "=" + natural;
+                accBuffer[natural] = false;
+            }
+        }
+
+        compiled += converted;
+
         // Beam every X notes
-        if (noteCount % BEAM_EVERY_X_NOTES === 0) compiled = compiled + " ";
+        if (noteCount % beams === 0) compiled += " ";
         // Draw a barline every X notes
-        if (noteCount % BREAK_EVERY_X_NOTES == 0) compiled = compiled + '|\n'
-        // Note counter
+        if (noteCount % breaks === 0) {
+            compiled += '|\n';
+            accBuffer = {}; // Reset buffer at barline
+        }
         noteCount++;
     }
     return compiled;
 }
+
 
 
 /**
@@ -39,26 +55,27 @@ function convertToAbcString(data) {
  */
 
 function convertNumberToNote(number) {
-    if (number < 0 || number > 127) return;
-    let noteNames = []
-    let octave = ""
-    if (number < 72) noteNames = ['C', '^C', 'D', '^D', 'E', 'F', '^F', 'G', '^G', 'A', '^A', 'B'];
-    if (number >= 72) noteNames = ['c', '^c', 'd', '^d', 'e', 'f', '^f', 'g', '^g', 'a', '^a', 'b'];
+  const noteNames = [
+    ['C', '_D', 'D', '_E', 'E', 'F', '^F', 'G', '_A', 'A', '_B', 'B'],
+    ['c', '_d', 'd', '_e', 'e', 'f', '^f', 'g', '_a', 'a', '_b', 'b']
+  ];
 
-    if (number < 60 && number >= 48) octave = ','
-    if (number < 48 && number >= 36) octave = ',,'
-    if (number < 36 && number >= 24) octave = ',,,'
-    if (number < 24 && number >= 12) octave = ',,,,'
+  const octaveIndex = Math.floor(number / 12) - 1;
+  const noteIndex = number % 12;
 
-    if (number < 84 && number >= 72) octave = ''
-    if (number < 96 && number >= 84) octave = '\''
-    if (number < 108 && number >= 96) octave = '\'\''
-    if (number < 110 && number >= 108) octave = '\'\'\''
+  const useLowerCase = octaveIndex >= 5;
+  const name = noteNames[useLowerCase ? 1 : 0][noteIndex];
 
-    //octave = (4 - Math.floor(number / 12)) * ',';
-    
-    return noteNames[number % 12] + octave.toString() +'';
+  let octaveSuffix = '';
+  if (octaveIndex < 4) {
+    octaveSuffix = ','.repeat(4 - octaveIndex);
+  } else if (octaveIndex > 5) {
+    octaveSuffix = '\''.repeat(octaveIndex - 5);
+  }
+
+  return name + octaveSuffix;
 }
+
 
 
 /**
@@ -105,19 +122,22 @@ function compileAbcString() {
   // Collect all the values from the DOM
   const divisions = parseInt(divisionInput.value);
   const starting = parseInt(startingNote.value)
-  const notes = parseInt(numberOfNotes.value)
+  const nodes = parseInt(numberOfNodes.value)
   const interpolation = parseInt(interpolationInput.value)
   const interpolationInterval = [parseInt(interpolationIntervalInput1.value), parseInt(interpolationIntervalInput2.value), parseInt(interpolationIntervalInput3.value), parseInt(interpolationIntervalInput4.value)]
  
   // Control which interpolation interval inputs the user can edit
   disableInterpolationInputs(interpolation)
 
-  // Generate the scale and if reverse is checked, reverse the array
-  let noteArray = generateScale(divisions, starting, notes, interpolation, interpolationInterval);
-  if (descending.checked===true) noteArray.reverse();
-  
+  // Generate the scale and if reverse is checked, append the reversed the array
+  let noteArray = generateScale(divisions, starting, nodes, interpolation, interpolationInterval);
+  if (descending.checked === true) noteArray = noteArray.concat([...noteArray].reverse());
+
+  // choose sane numbers for linebreaks
+  let beams = interpolation + 1;
+  let breaks = (beams * nodes > 18) ? beams * Math.ceil(nodes / 2) : beams * nodes; 
   // Convert to ABC and return
-  return convertToAbcString(noteArray);
+  return convertToAbcString(noteArray, beams, breaks);
 }
 
 
@@ -209,7 +229,7 @@ function drawNotation() {
 
 const divisionInput = document.getElementById("divisions-input");
 const startingNote = document.getElementById("starting-input");
-const numberOfNotes = document.getElementById("notes-input");
+const numberOfNodes = document.getElementById("notes-input");
 const interpolationInput = document.getElementById("interpolation-input");
 const interpolationIntervalInput1 = document.getElementById("interpolation-interval-input1");
 const interpolationIntervalInput2 = document.getElementById("interpolation-interval-input2");
