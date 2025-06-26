@@ -66,7 +66,7 @@ function convertNumberToNote(number) {
  * 
  * @param divisions - the base interval between each node
  * @param {int} start - which note number should we start on?
- * @param {int} nodes - the number of nodes to ass
+ * @param {int} nodes - the number of nodes to add
  * @param {int} interpolation - the number of interpolations to add
  * @param {array} interpolationIntervals - An array that contains each interval from the node
  * @returns {array} of notes to be drawn
