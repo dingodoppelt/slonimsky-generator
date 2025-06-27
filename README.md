@@ -9,5 +9,8 @@ I used the library abcjs to draw to notation and mange the playback.
 TODO:
 
 - ~~Add naturals to to cancel out the sharps~~ ✅
+- refactor accidentals and octave marks (process in beam groups)
 - Variable playback speed
 - ~~Change to bass clef for the low notes~~ (not bass clef but 8vb and 8va marks to keep it readable)
+- Permutations
+- Nested patterns (patternize patterns)
