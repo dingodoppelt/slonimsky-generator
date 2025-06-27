@@ -10,4 +10,4 @@ TODO:
 
 - ~~Add naturals to to cancel out the sharps~~ ✅
 - Variable playback speed
-- Change to bass clef for the low notes
+- ~~Change to bass clef for the low notes~~ (not bass clef but 8vb and 8va marks to keep it readable)
