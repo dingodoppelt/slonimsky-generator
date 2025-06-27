@@ -15,6 +15,7 @@ function convertToAbcString(data, beams, breaks) {
     let noteCount = 1;
     // Buffer for saving accidentals within the bar
     let accBuffer = {};
+    let octBuffer = false;
 
     for (let i = 0; i < data.length; i++) {
         let converted = convertNumberToNote(data[i]);
@@ -30,7 +31,14 @@ function convertToAbcString(data, beams, breaks) {
                 accBuffer[natural] = false;
             }
         }
-
+        if (data[i] > 90 && !octBuffer) {
+          compiled += '[K:octave=-1][I:MIDI=transpose 12]"^8va Start"';
+          octBuffer = true;
+        }
+        if (data[i] <= 90 && octBuffer) {
+          compiled += '[K:octave=0][I:MIDI=transpose 0]"^8va End"';
+          octBuffer = false;
+        }
         compiled += converted;
 
         // Beam every X notes
@@ -43,6 +51,7 @@ function convertToAbcString(data, beams, breaks) {
         noteCount++;
     }
     compiled += '|\n';
+    console.log(compiled);
     return compiled;
 }
 
