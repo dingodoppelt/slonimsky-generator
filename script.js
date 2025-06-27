@@ -187,13 +187,13 @@ function drawNotation() {
     const abcString = compileAbcString();
     var visualOptions = { 
       //responsive: 'resize',
-      staffwidth: 768,
+      staffwidth: window.innerWidth,
       wrap: {
         minSpacing: 2.5,
         maxSpacing: 4,
         preferredMeasuresPerLine: 1
       },
-      scale: 1.8
+      // scale: 1.8
 
      };
     var visualObj = ABCJS.renderAbc("paper", abcString, visualOptions);
