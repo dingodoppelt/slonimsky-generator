@@ -36,8 +36,12 @@ function convertToAbcString(data, beams, breaks) {
             compiled += '[K:octave=-1][I:MIDI=transpose 12]"^8va Start"';
             octBuffer = true;
           }
-          if (data[i] <= 90 && octBuffer) {
-            compiled += '[K:octave=0][I:MIDI=transpose 0]"^8va End"';
+          if (data[i] < 53 && !octBuffer) {
+            compiled += '[K:octave=1][I:MIDI=transpose -12]"^8vb Start"'
+            octBuffer = true;
+          }
+          if (data[i] >= 53 && data[i] <= 90 && octBuffer) {
+            compiled += '[K:octave=0][I:MIDI=transpose 0]"^8vb End"';
             octBuffer = false;
           }
         }
