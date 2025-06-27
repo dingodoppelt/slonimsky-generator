@@ -17,18 +17,28 @@ function convertToAbcString(data, beams, breaks) {
     let accBuffer = {};
     let octBuffer = false;
 
+    // Regex für Vorzeichen, Note und Oktave
+    const noteRegex = /^(?<accidental>[_^=]?)(?<note>[a-gA-G])(?<octave>[',]*)$/;
+
     for (let i = 0; i < data.length; i++) {
         let converted = convertNumberToNote(data[i]);
-        let natural = converted.replace(/[_^]/g, ""); // Extract note letter
+        const match = converted.match(noteRegex);
+        let accidental = "", note = "", octave = "";
+
+        if (match && match.groups) {
+            accidental = match.groups.accidental;
+            note = match.groups.note;
+            octave = match.groups.octave;
+        }
 
         // Handle sharps and naturals
         if (/^[\^_]/.test(converted)) {
-            accBuffer[natural] = true;
+            accBuffer[note] = true;
         } else {
             // If previously sharp, and now natural, add '='
-            if (accBuffer[natural]) {
-                converted = "=" + natural;
-                accBuffer[natural] = false;
+            if (accBuffer[note]) {
+                converted = "=" + note + octave;
+                accBuffer[note] = false;
             }
         }
         if (compress.checked === true) {
@@ -41,7 +51,7 @@ function convertToAbcString(data, beams, breaks) {
             octBuffer = true;
           }
           if (data[i] >= 53 && data[i] <= 90 && octBuffer) {
-            compiled += '[K:octave=0][I:MIDI=transpose 0]"^8vb End"';
+            compiled += '[K:octave=0][I:MIDI=transpose 0]"^End"';
             octBuffer = false;
           }
         }
