@@ -31,13 +31,15 @@ function convertToAbcString(data, beams, breaks) {
                 accBuffer[natural] = false;
             }
         }
-        if (data[i] > 90 && !octBuffer) {
-          compiled += '[K:octave=-1][I:MIDI=transpose 12]"^8va Start"';
-          octBuffer = true;
-        }
-        if (data[i] <= 90 && octBuffer) {
-          compiled += '[K:octave=0][I:MIDI=transpose 0]"^8va End"';
-          octBuffer = false;
+        if (compress.checked === true) {
+          if (data[i] > 90 && !octBuffer) {
+            compiled += '[K:octave=-1][I:MIDI=transpose 12]"^8va Start"';
+            octBuffer = true;
+          }
+          if (data[i] <= 90 && octBuffer) {
+            compiled += '[K:octave=0][I:MIDI=transpose 0]"^8va End"';
+            octBuffer = false;
+          }
         }
         compiled += converted;
 
@@ -139,7 +141,7 @@ function compileAbcString() {
   // Control which interpolation interval inputs the user can edit
   disableInterpolationInputs(interpolation)
 
-  // Generate the scale and if reverse is checked, append the reversed the array
+  // Generate the scale and if reverse is checked, append the reversed array
   let noteArray = generateScale(divisions, starting, nodes, interpolation, interpolationInterval);
   if (descending.checked === true) noteArray = noteArray.concat([...noteArray].reverse());
 
@@ -249,3 +251,4 @@ const interpolationIntervalInput2 = document.getElementById("interpolation-inter
 const interpolationIntervalInput3 = document.getElementById("interpolation-interval-input3");
 const interpolationIntervalInput4 = document.getElementById("interpolation-interval-input4");
 const descending = document.getElementById("descending");
+const compress = document.getElementById("compress");
