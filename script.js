@@ -42,6 +42,7 @@ function convertToAbcString(data, beams, breaks) {
         }
         noteCount++;
     }
+    compiled += '|\n';
     return compiled;
 }
 
@@ -135,7 +136,10 @@ function compileAbcString() {
 
   // choose sane numbers for linebreaks
   let beams = interpolation + 1;
-  let breaks = (beams * nodes > 18) ? beams * Math.ceil(nodes / 2) : beams * nodes; 
+  let breaks = beams * nodes;
+  while (breaks > 60) {
+    breaks -= beams;
+  }
   // Convert to ABC and return
   return convertToAbcString(noteArray, beams, breaks);
 }
