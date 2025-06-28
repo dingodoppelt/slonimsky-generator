@@ -2,6 +2,9 @@
 const OCTAVE_DISPLACEMENT = 2;
 const NODE_START_OFFSET = 48;
 
+function calcSemitones(first, second) {
+  return second - first;
+}
 
 /**
  * convertToAbcString - Converts an array of notes into the ABC string format
@@ -11,6 +14,16 @@ const NODE_START_OFFSET = 48;
  */
 
 function convertToAbcString(data, beams, breaks) {
+  const midiNotes = [
+    //bb  b   =   #   X
+    [ 9, 10, 11,  0,  1],  // b
+    [ 7,  8,  9, 10, 11],  // a
+    [ 5,  6,  7,  8,  9],  // g
+    [ 3,  4,  5,  6,  7],  // f
+    [ 2,  3,  4,  5,  6],  // e
+    [ 0,  1,  2,  3,  4],  // d
+    [10, 11,  0,  1,  2],  // c
+  ];
   let compiled = "M:\nL: 1/16\n";
   let noteCount = 1;
   // Buffer for saving accidentals within the bar
@@ -20,51 +33,70 @@ function convertToAbcString(data, beams, breaks) {
   // Regex für Vorzeichen, Note und Oktave
   const noteRegex = /^(?<accidental>[_^=]?)(?<note>[a-gA-G])(?<octave>[',]*)$/;
   
-  for (let i = 0; i < data.length; i++) {
-    let converted = convertNumberToNote(data[i]);
-    const match = converted.match(noteRegex);
-    let accidental = "", note = "", octave = "";
-    
-    if (match && match.groups) {
-      accidental = match.groups.accidental;
-      note = match.groups.note;
-      octave = match.groups.octave;
+  // reconstruct interpolation intervals
+  let interpolationIntervals = [];
+  for (let i=0; i < beams-1; i++) {
+    interpolationIntervals[i] = data[i+1] - data[0];
+  }
+  console.log(interpolationIntervals);
+  
+  for (let i = 0; i < data.length; i+=beams) {
+    let motiv = [];
+    let oor = 0; // out of range
+    let stringBuf = "";
+    for (let x=0; x < beams; x++) {
+      motiv[x] = data[i+x];
     }
     
-    // Handle sharps and naturals
-    if (/^[\^_]/.test(converted)) {
-      accBuffer[note] = true;
-    } else {
-      // If previously sharp, and now natural, add '='
-      if (accBuffer[note]) {
-        converted = "=" + note + octave;
-        accBuffer[note] = false;
+    for (let j = 0; j < beams; j++) {
+      let converted = convertNumberToNote(motiv[j]);
+      const match = converted.match(noteRegex);
+      let accidental = "", note = "", octave = "";
+      
+      if (match && match.groups) {
+        accidental = match.groups.accidental;
+        note = match.groups.note;
+        octave = match.groups.octave;
       }
+      
+      // Handle sharps and naturals
+      if (/^[\^_]/.test(converted)) {
+        accBuffer[note] = true;
+      } else {
+        // If previously sharp, and now natural, add '='
+        if (accBuffer[note]) {
+          converted = "=" + note + octave;
+          accBuffer[note] = false;
+        }
+      }
+      if (compress.checked === true) {
+        if (motiv[j] > 90) oor++;
+        if (motiv[j] < 53) oor--;
+      }
+      stringBuf += converted;
+      
+      // Draw a barline every X notes
+      if (noteCount % breaks === 0) {
+        stringBuf += '|\n';
+        accBuffer = {}; // Reset buffer at barline
+      }
+      noteCount++;
     }
-    if (compress.checked === true) {
-      if (data[i] > 90 && !octBuffer) {
-        compiled += '[K:octave=-1][I:MIDI=transpose 12]"^8va Start"';
-        octBuffer = true;
-      }
-      if (data[i] < 53 && !octBuffer) {
-        compiled += '[K:octave=1][I:MIDI=transpose -12]"^8vb Start"'
-        octBuffer = true;
-      }
-      if (data[i] >= 53 && data[i] <= 90 && octBuffer) {
-        compiled += '[K:octave=0][I:MIDI=transpose 0]"^End"';
-        octBuffer = false;
-      }
+    if (oor > 1 && !octBuffer) {
+      compiled += '[K:octave=-1][I:MIDI=transpose 12]"^8va Start"';
+      octBuffer = true;
     }
-    compiled += converted;
-    
-    // Beam every X notes
-    if (noteCount % beams === 0) compiled += " ";
-    // Draw a barline every X notes
-    if (noteCount % breaks === 0) {
-      compiled += '|\n';
-      accBuffer = {}; // Reset buffer at barline
+    if (oor < -1 && !octBuffer) {
+      compiled += '[K:octave=1][I:MIDI=transpose -12]"^8vb Start"';
+      octBuffer = true;
     }
-    noteCount++;
+    if ((oor > -2 && oor < 2) && octBuffer) {
+      compiled += '[K:octave=0][I:MIDI=transpose 0]"^End"';
+      octBuffer = false;
+    }
+
+    stringBuf += " " // Beamgroups
+    compiled += stringBuf;
   }
   compiled += '|\n';
   console.log(compiled);
@@ -166,7 +198,8 @@ function compileAbcString() {
     breaks -= beams;
   }
   // Convert to ABC and return
-  return convertToAbcString(noteArray, beams, breaks);
+  const abcString = convertToAbcString(noteArray, beams, breaks);
+  return abcString;
 }
 
 
