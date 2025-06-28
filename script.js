@@ -11,64 +11,64 @@ const NODE_START_OFFSET = 48;
  */
 
 function convertToAbcString(data, beams, breaks) {
-    let compiled = "M:\nL: 1/16\n";
-    let noteCount = 1;
-    // Buffer for saving accidentals within the bar
-    let accBuffer = {};
-    let octBuffer = false;
-
-    // Regex für Vorzeichen, Note und Oktave
-    const noteRegex = /^(?<accidental>[_^=]?)(?<note>[a-gA-G])(?<octave>[',]*)$/;
-
-    for (let i = 0; i < data.length; i++) {
-        let converted = convertNumberToNote(data[i]);
-        const match = converted.match(noteRegex);
-        let accidental = "", note = "", octave = "";
-
-        if (match && match.groups) {
-            accidental = match.groups.accidental;
-            note = match.groups.note;
-            octave = match.groups.octave;
-        }
-
-        // Handle sharps and naturals
-        if (/^[\^_]/.test(converted)) {
-            accBuffer[note] = true;
-        } else {
-            // If previously sharp, and now natural, add '='
-            if (accBuffer[note]) {
-                converted = "=" + note + octave;
-                accBuffer[note] = false;
-            }
-        }
-        if (compress.checked === true) {
-          if (data[i] > 90 && !octBuffer) {
-            compiled += '[K:octave=-1][I:MIDI=transpose 12]"^8va Start"';
-            octBuffer = true;
-          }
-          if (data[i] < 53 && !octBuffer) {
-            compiled += '[K:octave=1][I:MIDI=transpose -12]"^8vb Start"'
-            octBuffer = true;
-          }
-          if (data[i] >= 53 && data[i] <= 90 && octBuffer) {
-            compiled += '[K:octave=0][I:MIDI=transpose 0]"^End"';
-            octBuffer = false;
-          }
-        }
-        compiled += converted;
-
-        // Beam every X notes
-        if (noteCount % beams === 0) compiled += " ";
-        // Draw a barline every X notes
-        if (noteCount % breaks === 0) {
-            compiled += '|\n';
-            accBuffer = {}; // Reset buffer at barline
-        }
-        noteCount++;
+  let compiled = "M:\nL: 1/16\n";
+  let noteCount = 1;
+  // Buffer for saving accidentals within the bar
+  let accBuffer = {};
+  let octBuffer = false;
+  
+  // Regex für Vorzeichen, Note und Oktave
+  const noteRegex = /^(?<accidental>[_^=]?)(?<note>[a-gA-G])(?<octave>[',]*)$/;
+  
+  for (let i = 0; i < data.length; i++) {
+    let converted = convertNumberToNote(data[i]);
+    const match = converted.match(noteRegex);
+    let accidental = "", note = "", octave = "";
+    
+    if (match && match.groups) {
+      accidental = match.groups.accidental;
+      note = match.groups.note;
+      octave = match.groups.octave;
     }
-    compiled += '|\n';
-    console.log(compiled);
-    return compiled;
+    
+    // Handle sharps and naturals
+    if (/^[\^_]/.test(converted)) {
+      accBuffer[note] = true;
+    } else {
+      // If previously sharp, and now natural, add '='
+      if (accBuffer[note]) {
+        converted = "=" + note + octave;
+        accBuffer[note] = false;
+      }
+    }
+    if (compress.checked === true) {
+      if (data[i] > 90 && !octBuffer) {
+        compiled += '[K:octave=-1][I:MIDI=transpose 12]"^8va Start"';
+        octBuffer = true;
+      }
+      if (data[i] < 53 && !octBuffer) {
+        compiled += '[K:octave=1][I:MIDI=transpose -12]"^8vb Start"'
+        octBuffer = true;
+      }
+      if (data[i] >= 53 && data[i] <= 90 && octBuffer) {
+        compiled += '[K:octave=0][I:MIDI=transpose 0]"^End"';
+        octBuffer = false;
+      }
+    }
+    compiled += converted;
+    
+    // Beam every X notes
+    if (noteCount % beams === 0) compiled += " ";
+    // Draw a barline every X notes
+    if (noteCount % breaks === 0) {
+      compiled += '|\n';
+      accBuffer = {}; // Reset buffer at barline
+    }
+    noteCount++;
+  }
+  compiled += '|\n';
+  console.log(compiled);
+  return compiled;
 }
 
 
@@ -85,20 +85,20 @@ function convertNumberToNote(number) {
     ['C', '_D', 'D', '_E', 'E', 'F', '^F', 'G', '_A', 'A', '_B', 'B'],
     ['c', '_d', 'd', '_e', 'e', 'f', '^f', 'g', '_a', 'a', '_b', 'b']
   ];
-
+  
   const octaveIndex = Math.floor(number / 12) - 1;
   const noteIndex = number % 12;
-
+  
   const useLowerCase = octaveIndex >= 5;
   const name = noteNames[useLowerCase ? 1 : 0][noteIndex];
-
+  
   let octaveSuffix = '';
   if (octaveIndex < 4) {
     octaveSuffix = ','.repeat(4 - octaveIndex);
   } else if (octaveIndex > 5) {
     octaveSuffix = '\''.repeat(octaveIndex - 5);
   }
-
+  
   return name + octaveSuffix;
 }
 
@@ -116,24 +116,24 @@ function convertNumberToNote(number) {
  */
 
 function generateScale(divisions, start, nodes, interpolation, interpolationInterval) {
+  
+  if (divisions <= 0) return;
+  if (nodes <= 0) return;
+  
+  let scaleArray = [];
+  let startingNote = start + NODE_START_OFFSET;
+  
+  // add the nodes base note to the scale array
+  for (i = 0; i < nodes; i++) {
     
-    if (divisions <= 0) return;
-    if (nodes <= 0) return;
-
-    let scaleArray = [];
-    let startingNote = start + NODE_START_OFFSET;
-
-    // add the nodes base note to the scale array
-    for (i = 0; i < nodes; i++) {
+    scaleArray.push(startingNote + (i * divisions));
     
-        scaleArray.push(startingNote + (i * divisions));
-
-        // add each of the interpolations to the scale array
-        for (x = 0; x < interpolation; x++) {
-          scaleArray.push(startingNote + (i * divisions) + interpolationInterval[x]);
-        }
+    // add each of the interpolations to the scale array
+    for (x = 0; x < interpolation; x++) {
+      scaleArray.push(startingNote + (i * divisions) + interpolationInterval[x]);
     }
-    return scaleArray; 
+  }
+  return scaleArray; 
 }
 
 
@@ -144,21 +144,21 @@ function generateScale(divisions, start, nodes, interpolation, interpolationInte
  */
 
 function compileAbcString() {
-
+  
   // Collect all the values from the DOM
   const divisions = parseInt(divisionInput.value);
   const starting = parseInt(startingNote.value)
   const nodes = parseInt(numberOfNodes.value)
   const interpolation = parseInt(interpolationInput.value)
   const interpolationInterval = [parseInt(interpolationIntervalInput1.value), parseInt(interpolationIntervalInput2.value), parseInt(interpolationIntervalInput3.value), parseInt(interpolationIntervalInput4.value)]
- 
+  
   // Control which interpolation interval inputs the user can edit
   disableInterpolationInputs(interpolation)
-
+  
   // Generate the scale and if reverse is checked, append the reversed array
   let noteArray = generateScale(divisions, starting, nodes, interpolation, interpolationInterval);
   if (descending.checked === true) noteArray = noteArray.concat([...noteArray].reverse());
-
+  
   // choose sane numbers for linebreaks
   let beams = interpolation + 1;
   let breaks = beams * nodes;
@@ -177,13 +177,13 @@ function compileAbcString() {
  */
 
 function disableInterpolationInputs(number) {
-
+  
   // Disable them all
   interpolationIntervalInput1.disabled = true;
   interpolationIntervalInput2.disabled = true;
   interpolationIntervalInput3.disabled = true;
   interpolationIntervalInput4.disabled = true;
-
+  
   // Enable them one by one
   if(number >= 4) interpolationIntervalInput4.disabled = false;
   if(number >= 3) interpolationIntervalInput3.disabled = false;
@@ -198,19 +198,19 @@ function disableInterpolationInputs(number) {
  */
 
 function drawNotation() {    
-    const abcString = compileAbcString();
-    var visualOptions = { 
-      //responsive: 'resize',
-      staffwidth: window.innerWidth,
-      wrap: {
-        minSpacing: 2.5,
-        maxSpacing: 4,
-        preferredMeasuresPerLine: 1
-      },
-      // scale: 1.8
-
-     };
-    var visualObj = ABCJS.renderAbc("paper", abcString, visualOptions);
+  const abcString = compileAbcString();
+  var visualOptions = { 
+    //responsive: 'resize',
+    staffwidth: window.innerWidth,
+    wrap: {
+      minSpacing: 2.5,
+      maxSpacing: 4,
+      preferredMeasuresPerLine: 1
+    },
+    // scale: 1.8
+    
+  };
+  var visualObj = ABCJS.renderAbc("paper", abcString, visualOptions);
 }
 
 
@@ -220,12 +220,12 @@ function drawNotation() {
  * from basic playback example in abcjs lib
  */
 
- function play() {
+function play() {
   if (ABCJS.synth.supportsAudio()) {
-
+    
     let abc = compileAbcString();
     let visualObj = ABCJS.renderAbc("*", abc)[0];
-
+    
     let midiBuffer = new ABCJS.synth.CreateSynth();
     midiBuffer.init({
       //audioContext: new AudioContext(),
