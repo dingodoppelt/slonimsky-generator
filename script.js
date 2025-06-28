@@ -14,23 +14,23 @@ function calcSemitones(first, second) {
  */
 
 function convertToAbcString(data, beams, breaks) {
-  const midiNotes = [
-    //bb  b   =   #   X
-    [ 9, 10, 11,  0,  1],  // b
-    [ 7,  8,  9, 10, 11],  // a
-    [ 5,  6,  7,  8,  9],  // g
-    [ 3,  4,  5,  6,  7],  // f
-    [ 2,  3,  4,  5,  6],  // e
-    [ 0,  1,  2,  3,  4],  // d
-    [10, 11,  0,  1,  2],  // c
-  ];
+  // const midiNotes = [
+  //   //bb  b   =   #   X
+  //   [ 9, 10, 11,  0,  1],  // b
+  //   [ 7,  8,  9, 10, 11],  // a
+  //   [ 5,  6,  7,  8,  9],  // g
+  //   [ 3,  4,  5,  6,  7],  // f
+  //   [ 2,  3,  4,  5,  6],  // e
+  //   [ 0,  1,  2,  3,  4],  // d
+  //   [10, 11,  0,  1,  2],  // c
+  // ];
   let compiled = "M:\nL: 1/16\n";
   let noteCount = 1;
   // Buffer for saving accidentals within the bar
   let accBuffer = {};
   let octBuffer = false;
   
-  // Regex für Vorzeichen, Note und Oktave
+  // Regex for accidentals, notes and octaves
   const noteRegex = /^(?<accidental>[_^=]?)(?<note>[a-gA-G])(?<octave>[',]*)$/;
   
   // reconstruct interpolation intervals
@@ -38,7 +38,6 @@ function convertToAbcString(data, beams, breaks) {
   for (let i=0; i < beams-1; i++) {
     interpolationIntervals[i] = data[i+1] - data[0];
   }
-  console.log(interpolationIntervals);
   
   for (let i = 0; i < data.length; i+=beams) {
     let motiv = [];
