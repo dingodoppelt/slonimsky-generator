@@ -39,7 +39,6 @@ function convertToAbcString(data, beams, breaks) {
     let oor = 0; // out of range
     let stringBuf = "";
     let bestNotes = findKey(motiv);
-    // (bestNotes)
     for (let j = 0; j < bestNotes.length; j++) {
       let converted = convertCoordToAbc(bestNotes[j]);
       const match = converted.match(noteRegex);
@@ -91,7 +90,6 @@ function convertToAbcString(data, beams, breaks) {
     compiled += stringBuf;
   }
   compiled += '|\n';
-  // console.log(compiled)
   return compiled;
 }
 
@@ -107,7 +105,6 @@ function findKey(motiv) {
       coordinates[idx++] = buffer;
     // }
   }
-    // console.log(coordinates)
   return findBestScore(coordinates);
 }
 
@@ -189,11 +186,9 @@ function coordinatesFromMotiv(itpl, rootCoord) {
         rootMidi = midiNumTarget;
         currRootX = (currRootX + offset) % 5;
         currRootY = (currRootY + keySteps) % 7;
-        
       }
     }
   }
-  console.log(results)
   return results;
 }
 
