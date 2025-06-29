@@ -103,10 +103,11 @@ function findKey(motiv) {
   let idx = 0;
   for (let i=0; i < roots.length; i++) {
     let buffer = coordinatesFromMotiv(interpolationIntervals, roots[i]);
-    if (buffer.length === motiv.length) {
+    // if (buffer.length === motiv.length) {
       coordinates[idx++] = buffer;
-    }
+    // }
   }
+    // console.log(coordinates)
   return findBestScore(coordinates);
 }
 
@@ -147,31 +148,49 @@ function findAllRoots(value) {
   return results;
 }
 
+function negWrap(n, m) {
+  return ((n % m) + m) % m;
+}
+
+function roundHalfInterval(value) {
+  return value >= 0 ? Math.ceil(value / 2) : Math.floor(value / 2);
+}
+
 function coordinatesFromMotiv(itpl, rootCoord) {
   let results = [];
   let rootMidi = findMidiNote(rootCoord);
   let currRootY = rootCoord[0];
   let currRootX = rootCoord[1];
-  // console.log(rootCoord)
   results.push(rootCoord);
   for (let i=0; i < itpl.length; i++) {
-    let midiNumTarget = rootMidi + itpl[i];
-    let keySteps = Math.ceil(itpl[i] / 2);
-    let peekTarget = (currRootY + keySteps);
-    peekTargetMidi = midiNotes[peekTarget % 7][currRootX];
-    if (peekTarget > 0) {
+    if (itpl[i] > 0) {
+      let midiNumTarget = rootMidi + itpl[i];
+      let keySteps = roundHalfInterval(itpl[i]);
+      let peekTarget = negWrap(currRootY + keySteps, 7);
+      peekTargetMidi = midiNotes[peekTarget][currRootX] + findOctave(midiNumTarget + 12) * 12;
       while (peekTargetMidi <= rootMidi) peekTargetMidi += 12;
-    }
-    if (peekTarget < 0) {
-      while (peekTarget <= 0) peekTarget += 7;
-    }
-    let offset = (midiNumTarget - peekTargetMidi);
-    let midiGuess = midiNotes[peekTarget % 7][(currRootX + offset) % 5];
-    if (midiGuess === midiNumTarget % 12) {
-     results.push([peekTarget % 7, currRootX + offset, findOctave(midiNumTarget + 12)]);
-     rootMidi = midiNumTarget;
-     currRootX = (currRootX + offset) % 5;
-     currRootY = (currRootY + keySteps) % 7;
+      let offset = midiNumTarget - peekTargetMidi;
+      let midiGuess = midiNotes[peekTarget % 7][(currRootX + offset) % 5];
+      if (midiGuess === midiNumTarget % 12) {
+        results.push([peekTarget % 7, currRootX + offset, findOctave(midiNumTarget + 12)]);
+        rootMidi = midiNumTarget;
+        currRootX = (currRootX + offset) % 5;
+        currRootY = (currRootY + keySteps) % 7;
+      }
+    } else {
+      let midiNumTarget = rootMidi + itpl[i];
+      let keySteps = roundHalfInterval(itpl[i]);
+      let peekTarget = negWrap(currRootY + keySteps, 7);
+      peekTargetMidi = midiNotes[peekTarget][currRootX] + findOctave(midiNumTarget + 12) * 12;
+      let offset = (midiNumTarget - peekTargetMidi);
+      let midiGuess = midiNotes[peekTarget % 7][(currRootX + offset) % 5];
+      if (midiGuess === midiNumTarget % 12) {
+        results.push([peekTarget % 7, currRootX + offset, findOctave(midiNumTarget + 12)]);
+        rootMidi = midiNumTarget;
+        currRootX = (currRootX + offset) % 5;
+        currRootY = (currRootY + keySteps) % 7;
+        
+      }
     }
   }
   return results;
