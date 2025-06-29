@@ -1,10 +1,21 @@
 // Global Constants
 const OCTAVE_DISPLACEMENT = 2;
 const NODE_START_OFFSET = 48;
-
-function calcSemitones(first, second) {
-  return second - first;
-}
+const midiNotes = [
+  //bb  b   =   #   X
+  [10, 11,  0,  1,  2],  // c
+  [ 0,  1,  2,  3,  4],  // d
+  [ 2,  3,  4,  5,  6],  // e
+  [ 3,  4,  5,  6,  7],  // f
+  [ 5,  6,  7,  8,  9],  // g
+  [ 7,  8,  9, 10, 11],  // a
+  [ 9, 10, 11,  0,  1],  // b
+];
+const noteNames = [
+  ['C', 'D', 'E', 'F', 'G', 'A', 'B'],
+['c', 'd', 'e', 'f', 'g', 'a', 'b']
+];
+const accidentalNames = [ '__', '_', '', '^', '^^' ];
 
 /**
  * convertToAbcString - Converts an array of notes into the ABC string format
@@ -14,16 +25,6 @@ function calcSemitones(first, second) {
  */
 
 function convertToAbcString(data, beams, breaks) {
-  // const midiNotes = [
-  //   //bb  b   =   #   X
-  //   [ 9, 10, 11,  0,  1],  // b
-  //   [ 7,  8,  9, 10, 11],  // a
-  //   [ 5,  6,  7,  8,  9],  // g
-  //   [ 3,  4,  5,  6,  7],  // f
-  //   [ 2,  3,  4,  5,  6],  // e
-  //   [ 0,  1,  2,  3,  4],  // d
-  //   [10, 11,  0,  1,  2],  // c
-  // ];
   let compiled = "M:\nL: 1/16\n";
   let noteCount = 1;
   // Buffer for saving accidentals within the bar
@@ -33,22 +34,14 @@ function convertToAbcString(data, beams, breaks) {
   // Regex for accidentals, notes and octaves
   const noteRegex = /^(?<accidental>[_^=]?)(?<note>[a-gA-G])(?<octave>[',]*)$/;
   
-  // reconstruct interpolation intervals
-  let interpolationIntervals = [];
-  for (let i=0; i < beams-1; i++) {
-    interpolationIntervals[i] = data[i+1] - data[0];
-  }
-  
   for (let i = 0; i < data.length; i+=beams) {
-    let motiv = [];
+    let motiv = data.slice(i, i + beams);
     let oor = 0; // out of range
     let stringBuf = "";
-    for (let x=0; x < beams; x++) {
-      motiv[x] = data[i+x];
-    }
-    
-    for (let j = 0; j < beams; j++) {
-      let converted = convertNumberToNote(motiv[j]);
+    let bestNotes = findKey(motiv);
+    // (bestNotes)
+    for (let j = 0; j < bestNotes.length; j++) {
+      let converted = convertCoordToAbc(bestNotes[j]);
       const match = converted.match(noteRegex);
       let accidental = "", note = "", octave = "";
       
@@ -93,46 +86,125 @@ function convertToAbcString(data, beams, breaks) {
       compiled += '[K:octave=0][I:MIDI=transpose 0]"^End"';
       octBuffer = false;
     }
-
+    
     stringBuf += " " // Beamgroups
     compiled += stringBuf;
   }
   compiled += '|\n';
-  console.log(compiled);
+  // console.log(compiled)
   return compiled;
 }
 
-
-
-/**
- * convertNumberToNote - Converts midi note number to readable note name
- * 
- * @param {*} number - midi note number
- * @returns 
- */
-
-function convertNumberToNote(number) {
-  const noteNames = [
-    ['C', '_D', 'D', '_E', 'E', 'F', '^F', 'G', '_A', 'A', '_B', 'B'],
-    ['c', '_d', 'd', '_e', 'e', 'f', '^f', 'g', '_a', 'a', '_b', 'b']
-  ];
-  
-  const octaveIndex = Math.floor(number / 12) - 1;
-  const noteIndex = number % 12;
-  
-  const useLowerCase = octaveIndex >= 5;
-  const name = noteNames[useLowerCase ? 1 : 0][noteIndex];
-  
-  let octaveSuffix = '';
-  if (octaveIndex < 4) {
-    octaveSuffix = ','.repeat(4 - octaveIndex);
-  } else if (octaveIndex > 5) {
-    octaveSuffix = '\''.repeat(octaveIndex - 5);
+function findKey(motiv) {
+  // reconstruct interpolation intervals
+  let interpolationIntervals = getRelativeInterpolationIntervals(motiv);
+  let roots = findAllRoots(motiv[0]);
+  let coordinates = [];
+  let idx = 0;
+  for (let i=0; i < roots.length; i++) {
+    let buffer = coordinatesFromMotiv(interpolationIntervals, roots[i]);
+    if (buffer.length === motiv.length) {
+      coordinates[idx++] = buffer;
+    }
   }
-  
-  return name + octaveSuffix;
+  return findBestScore(coordinates);
 }
 
+function getInterpolationIntervals(motiv) {
+  let results = [];
+  for (let i=0; i < motiv.length-1; i++) {
+    results[i] = motiv[i +1] - motiv[0];
+  }
+  return results;
+}
+
+function getRelativeInterpolationIntervals(motiv) {
+  let results = [];
+  for (let i=0; i < motiv.length-1; i++) {
+    results[i] = motiv[i +1] - motiv[i];
+  }
+  return results;
+}
+
+function findOctave(value) {
+  return Math.floor(value / 12) - 1;
+}
+
+function findMidiNote(coordArray) {
+  return midiNotes[coordArray[0]][coordArray[1]] + coordArray[2] * 12;
+}
+
+function findAllRoots(value) {
+  const results = [];
+  const oct = findOctave(value);
+  for (let row = 0; row < midiNotes.length; row++) {
+    for (let col = 0; col < midiNotes[row].length; col++) {
+      if (midiNotes[row][col] === value % 12) {
+        results.push([row, col, oct]);
+      }
+    }
+  }
+  return results;
+}
+
+function coordinatesFromMotiv(itpl, rootCoord) {
+  let results = [];
+  let rootMidi = findMidiNote(rootCoord);
+  let currRootY = rootCoord[0];
+  let currRootX = rootCoord[1];
+  // console.log(rootCoord)
+  results.push(rootCoord);
+  for (let i=0; i < itpl.length; i++) {
+    let midiNumTarget = rootMidi + itpl[i];
+    let keySteps = Math.ceil(itpl[i] / 2);
+    let peekTarget = (currRootY + keySteps);
+    peekTargetMidi = midiNotes[peekTarget % 7][currRootX];
+    if (peekTarget > 0) {
+      while (peekTargetMidi <= rootMidi) peekTargetMidi += 12;
+    }
+    if (peekTarget < 0) {
+      while (peekTarget <= 0) peekTarget += 7;
+    }
+    let offset = (midiNumTarget - peekTargetMidi);
+    let midiGuess = midiNotes[peekTarget % 7][(currRootX + offset) % 5];
+    if (midiGuess === midiNumTarget % 12) {
+     results.push([peekTarget % 7, currRootX + offset, findOctave(midiNumTarget + 12)]);
+     rootMidi = midiNumTarget;
+     currRootX = (currRootX + offset) % 5;
+     currRootY = (currRootY + keySteps) % 7;
+    }
+  }
+  return results;
+}
+
+function findBestScore(notes) {
+  let bestScore = 0;
+  let lastScore = 6;
+  let i = 0;
+  for (i=0; i < notes.length; i++) {
+    let score = 0;
+    for (let j=0; j < notes[i].length; j++) {
+      score += Math.abs(notes[i][j][1] - 2) / notes[i].length;
+    }
+  if (score < lastScore) {
+    bestScore = i;
+    lastScore = score;
+  }
+  }
+  return notes[bestScore];
+}
+
+function convertCoordToAbc(coord) {
+  const useLowerCase = coord[2] >= 5;
+  const name = accidentalNames[coord[1]] + noteNames[useLowerCase ? 1 : 0][coord[0]];
+  let octaveSuffix = '';
+  if (coord[2] < 4) {
+    octaveSuffix = ','.repeat(4 - coord[2]);
+  } else if (coord[2] > 5) {
+    octaveSuffix = '\''.repeat(coord[2] - 5);
+  }
+  return name + octaveSuffix;
+}
 
 
 /**
@@ -298,3 +370,4 @@ const interpolationIntervalInput3 = document.getElementById("interpolation-inter
 const interpolationIntervalInput4 = document.getElementById("interpolation-interval-input4");
 const descending = document.getElementById("descending");
 const compress = document.getElementById("compress");
+const preferFlats = document.getElementById("flats");
