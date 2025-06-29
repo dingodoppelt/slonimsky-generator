@@ -179,7 +179,9 @@ function coordinatesFromMotiv(itpl, rootCoord) {
       let keySteps = roundHalfInterval(itpl[i]);
       let peekTarget = negWrap(currRootY + keySteps, 7);
       peekTargetMidi = midiNotes[peekTarget][currRootX] + findOctave(midiNumTarget + 12) * 12;
+      while (midiNumTarget - peekTargetMidi > 5) peekTargetMidi += 12;
       let offset = (midiNumTarget - peekTargetMidi);
+      console.log(offset)
       let midiGuess = midiNotes[peekTarget % 7][negWrap(currRootX + offset, 5)];
       if (midiGuess === midiNumTarget % 12) {
         results.push([peekTarget % 7, currRootX + offset, findOctave(midiNumTarget + 12)]);
