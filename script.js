@@ -74,7 +74,7 @@ function convertToAbcString(data, beams, breaks) {
         stringBuf += '|\n';
         accBuffer = {}; // Reset buffer at barline
       }
-      if (permute && noteCount % beams === 0) {
+      if (noteCount % beams === 0) {
         stringBuf += ' '
       }
       noteCount++;
@@ -357,7 +357,7 @@ function drawNotation() {
     wrap: {
       minSpacing: 2.5,
       maxSpacing: 4,
-      preferredMeasuresPerLine: 1
+      preferredMeasuresPerLine: 8
     },
     // scale: 1.8
     
