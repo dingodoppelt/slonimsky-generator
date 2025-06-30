@@ -12,5 +12,5 @@ TODO:
 - refactor accidentals and octave marks (process in beam groups)
 - Variable playback speed
 - ~~Change to bass clef for the low notes~~ (not bass clef but 8vb and 8va marks to keep it readable)
-- Permutations
+- ~~Permutations~~ ✅
 - Nested patterns (patternize patterns)
