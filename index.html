@@ -25,7 +25,7 @@
 
 </head>
 
-<body onload="drawNotation()">
+<body>
     
   <!-- your content here... -->
     <h1>Slonimsky Scale Generator</h1>
@@ -47,6 +47,8 @@
         <div class="item">Permute<input type="checkbox" id="perm" onchange="drawNotation()"></div>
         <div class="item"><button class="play" onclick="play()">Play</button></div>
         <div class="item"><button class="stop" onclick="stop()">Stop</button></div>
+        <div class="item"><button class="copy" onclick="copyPresetLinkToClipboard()">Copy preset link</button></div>
+
         <!--<div class="item" onclick="load()">Button 1</div>-->
         <!--<div class="item" onclick="loading2()">Generate</div>-->
     </div>

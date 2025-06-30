@@ -217,7 +217,6 @@ function coordinatesFromMotiv(itpl, rootCoord) {
       }
     }
   }
-  // console.log(results)
   return results;
 }
 
@@ -408,6 +407,54 @@ function stop() {
 window.addEventListener("resize", function () {
     drawNotation();
 });
+
+function copyPresetLinkToClipboard() {
+  const values = [
+    document.getElementById('divisions-input').value,
+    document.getElementById('starting-input').value,
+    document.getElementById('notes-input').value,
+    document.getElementById('interpolation-input').value,
+    document.getElementById('interpolation-interval-input1').value,
+    document.getElementById('interpolation-interval-input2').value,
+    document.getElementById('interpolation-interval-input3').value,
+    document.getElementById('interpolation-interval-input4').value,
+    document.getElementById('descending').checked ? 1 : 0,
+    document.getElementById('compress').checked ? 1 : 0,
+    document.getElementById('perm').checked ? 1 : 0
+  ];
+  const presetString = values.join(',');
+  const url = window.location.href.split('?')[0] + '?preset=' + presetString;
+  navigator.clipboard.writeText(url).then(function() {
+    alert('Preset link copied to clipboard!');
+  });
+}
+
+
+function applyPresetFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('preset')) {
+    const values = params.get('preset').split(',');
+    if (values.length >= 11) {
+      document.getElementById('divisions-input').value = values[0];
+      document.getElementById('starting-input').value = values[1];
+      document.getElementById('notes-input').value = values[2];
+      document.getElementById('interpolation-input').value = values[3];
+      document.getElementById('interpolation-interval-input1').value = values[4];
+      document.getElementById('interpolation-interval-input2').value = values[5];
+      document.getElementById('interpolation-interval-input3').value = values[6];
+      document.getElementById('interpolation-interval-input4').value = values[7];
+      document.getElementById('descending').checked = values[8] === '1';
+      document.getElementById('compress').checked = values[9] === '1';
+      document.getElementById('perm').checked = values[10] === '1';
+      if (typeof drawNotation === "function") drawNotation();
+    }
+  }
+}
+
+window.onload = function() {
+  applyPresetFromURL();
+  drawNotation();
+};
 
 // DOM variable declarations
 
