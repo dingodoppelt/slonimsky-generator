@@ -30,6 +30,7 @@ function convertToAbcString(data, beams, breaks) {
   // Buffer for saving accidentals within the bar
   let accBuffer = {};
   let octBuffer = false;
+  let permute = (perm.checked === true);
   
   // Regex for accidentals, notes and octaves
   const noteRegex = /^(?<accidental>[_^=]?)(?<note>[a-gA-G])(?<octave>[',]*)$/;
@@ -39,6 +40,8 @@ function convertToAbcString(data, beams, breaks) {
     let oor = 0; // out of range
     let stringBuf = "";
     let bestNotes = findKey(motiv);
+    let permutations = [];
+    if (permute) generatePermutations(bestNotes);
     for (let j = 0; j < bestNotes.length; j++) {
       let converted = convertCoordToAbc(bestNotes[j]);
       const match = converted.match(noteRegex);
@@ -71,6 +74,9 @@ function convertToAbcString(data, beams, breaks) {
         stringBuf += '|\n';
         accBuffer = {}; // Reset buffer at barline
       }
+      if (permute && noteCount % beams === 0) {
+        stringBuf += ' '
+      }
       noteCount++;
     }
     if (oor > 1 && !octBuffer) {
@@ -90,7 +96,22 @@ function convertToAbcString(data, beams, breaks) {
     compiled += stringBuf;
   }
   compiled += '|\n';
+  console.log(compiled)
   return compiled;
+}
+
+// thanks to perplexity
+function generatePermutations(arr) {
+  function perms(a) {
+    if (a.length <= 1) return [a];
+    return a.flatMap((v, i) =>
+      perms(a.slice(0, i).concat(a.slice(i + 1))).map(p => [v, ...p])
+    );
+  }
+  const all = perms(arr);
+  arr.push(...all
+    .filter(p => p.some((v, i) => v !== arr[i])) // Original nicht doppelt anhängen
+    .flat());
 }
 
 function findKey(motiv) {
@@ -191,7 +212,7 @@ function coordinatesFromMotiv(itpl, rootCoord) {
       while (midiNumTarget - peekTargetMidi > 4) peekTargetMidi += 12;
       let offset = (midiNumTarget - peekTargetMidi);
       let midiGuess = midiNotes[peekTarget][negWrap(currRootX + offset, 5)];
-      console.log('numTarget: ' + midiNumTarget + ' location: ' + peekTargetMidi + ' offset: ' + offset + ' guess: ' + midiGuess)
+      // console.log('numTarget: ' + midiNumTarget + ' location: ' + peekTargetMidi + ' offset: ' + offset + ' guess: ' + midiGuess)
       if (midiGuess === midiNumTarget % 12) {
         results.push([peekTarget % 7, currRootX + offset, findOctave(midiNumTarget + 12)]);
         rootMidi = midiNumTarget;
@@ -200,7 +221,7 @@ function coordinatesFromMotiv(itpl, rootCoord) {
       }
     }
   }
-  console.log(results)
+  // console.log(results)
   return results;
 }
 
@@ -350,14 +371,14 @@ function drawNotation() {
  *  
  * from basic playback example in abcjs lib
  */
-
+let midiBuffer = null;
 function play() {
   if (ABCJS.synth.supportsAudio()) {
     
     let abc = compileAbcString();
     let visualObj = ABCJS.renderAbc("*", abc)[0];
     
-    let midiBuffer = new ABCJS.synth.CreateSynth();
+    midiBuffer = new ABCJS.synth.CreateSynth();
     midiBuffer.init({
       //audioContext: new AudioContext(),
       visualObj: visualObj,
@@ -384,6 +405,10 @@ function play() {
   }
 }
 
+function stop() {
+  if (midiBuffer) midiBuffer.stop();
+}
+
 
 // DOM variable declarations
 
@@ -397,4 +422,4 @@ const interpolationIntervalInput3 = document.getElementById("interpolation-inter
 const interpolationIntervalInput4 = document.getElementById("interpolation-interval-input4");
 const descending = document.getElementById("descending");
 const compress = document.getElementById("compress");
-const preferFlats = document.getElementById("flats");
+const perm = document.getElementById("perm");
