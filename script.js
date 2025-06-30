@@ -70,12 +70,9 @@ function convertToAbcString(data, beams, breaks) {
       stringBuf += converted;
       
       // Draw a barline every X notes
-      if (noteCount % breaks === 0) {
+      if (noteCount % beams === 0) {
         stringBuf += '|\n';
         accBuffer = {}; // Reset buffer at barline
-      }
-      if (noteCount % beams === 0) {
-        stringBuf += ' '
       }
       noteCount++;
     }
@@ -96,7 +93,6 @@ function convertToAbcString(data, beams, breaks) {
     compiled += stringBuf;
   }
   compiled += '|\n';
-  console.log(compiled)
   return compiled;
 }
 
@@ -353,9 +349,9 @@ function drawNotation() {
   const abcString = compileAbcString();
   var visualOptions = { 
     //responsive: 'resize',
-    staffwidth: window.innerWidth,
+    staffwidth: window.innerWidth / 1.1,
     wrap: {
-      minSpacing: 2.5,
+      minSpacing: .5,
       maxSpacing: 4,
       preferredMeasuresPerLine: 8
     },
@@ -409,6 +405,9 @@ function stop() {
   if (midiBuffer) midiBuffer.stop();
 }
 
+window.addEventListener("resize", function () {
+    drawNotation();
+});
 
 // DOM variable declarations
 
