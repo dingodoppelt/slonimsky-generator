@@ -313,6 +313,7 @@ function compileAbcString() {
   }
   // Convert to ABC and return
   const abcString = convertToAbcString(noteArray, beams, breaks);
+  generateMidiFile(abcString);
   return abcString;
 }
 
@@ -396,7 +397,7 @@ function loadSynthControl() {
 	});
 }
 
-function generateMidiFile() {
+function generateMidiFile(abc) {
   options = {
 	midiOutputType: "link",
     // The following OPTIONAL parameters are only used when the type is "link":
@@ -406,7 +407,7 @@ function generateMidiFile() {
     // postTextDownload: "text that appears after the link",
     fileName: "pattern"
 }
-  var midi = ABCJS.synth.getMidiFile(compileAbcString(), options);
+  var midi = ABCJS.synth.getMidiFile(abc, options);
   document.getElementById("midi-link").innerHTML = midi;
 }
 
@@ -460,7 +461,6 @@ function applyPresetFromURL() {
 window.onload = function() {
   applyPresetFromURL();
   loadSynthControl();
-  generateMidiFile();
   drawNotation();
 };
 
