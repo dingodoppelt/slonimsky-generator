@@ -359,6 +359,7 @@ function drawNotation() {
     
   };
   var visualObj = ABCJS.renderAbc("paper", abcString, visualOptions);
+  loadSynthControl(visualObj[0]);
 }
 
 
@@ -368,7 +369,7 @@ function drawNotation() {
  * from basic playback example in abcjs lib
  */
 
-function loadSynthControl() {
+function loadSynthControl(abcString) {
   var synthControl = new ABCJS.synth.SynthController();
 	synthControl.load("#audio", 
         {}, 
@@ -382,8 +383,8 @@ function loadSynthControl() {
     );
     let audioParams = { chordsOff: true };
 
-    let abc = compileAbcString();
-    let abcString = ABCJS.renderAbc("*", abc)[0];
+    // let abc = compileAbcString();
+    // let abcString = ABCJS.renderAbc("*", abc)[0];
 
 	var createSynth = new ABCJS.synth.CreateSynth();
 	createSynth.init({ visualObj: abcString }).then(function () {
@@ -460,7 +461,6 @@ function applyPresetFromURL() {
 
 window.onload = function() {
   applyPresetFromURL();
-  loadSynthControl();
   drawNotation();
 };
 
