@@ -10,7 +10,8 @@ TODO:
 
 - ~~Add naturals to to cancel out the sharps~~ ✅
 - ~~refactor accidentals and octave marks (process in beam groups)~~ (still some quirks)
-- Variable playback speed
-- ~~Change to bass clef for the low notes~~ (not bass clef but 8vb and 8va marks to keep it readable)
+- ~~Variable playback speed~~ ✅
+- ~~Change to bass clef for the low notes~~ (not bass clef but 8vb and 8va marks to keep it readable) ✅
 - ~~Permutations~~ ✅
 - Nested patterns (patternize patterns)
+- ~~MIDI File export~~ ✅
