@@ -1,0 +1,3 @@
+[submodule "abcjs"]
+	path = abcjs
+	url = https://github.com/paulrosen/abcjs.git

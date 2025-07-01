@@ -366,42 +366,48 @@ function drawNotation() {
  *  
  * from basic playback example in abcjs lib
  */
-let midiBuffer = null;
-function play() {
-  if (ABCJS.synth.supportsAudio()) {
-    
+
+function loadSynthControl() {
+  var synthControl = new ABCJS.synth.SynthController();
+	synthControl.load("#audio", 
+        {}, 
+        {
+            displayLoop: true, 
+            displayRestart: true, 
+            displayPlay: true, 
+            displayProgress: true, 
+            displayWarp: true
+        }
+    );
+    let audioParams = { chordsOff: true };
+
     let abc = compileAbcString();
-    let visualObj = ABCJS.renderAbc("*", abc)[0];
-    
-    midiBuffer = new ABCJS.synth.CreateSynth();
-    midiBuffer.init({
-      //audioContext: new AudioContext(),
-      visualObj: visualObj,
-      // sequence: [],
-      millisecondsPerMeasure: 2000,
-      // debugCallback: function(message) { console.log(message) },
-      options: {
-        // soundFontUrl: "https://paulrosen.github.io/midi-js-soundfonts/FluidR3_GM/" ,
-        // sequenceCallback: function(noteMapTracks, callbackContext) { return noteMapTracks; },
-        // callbackContext: this,
-        // onEnded: function(callbackContext),
-        // pan: [ -0.5, 0.5 ]
-      }
-    }).then(function (response) {
-      console.log(response);
-      midiBuffer.prime().then(function (response) {
-        midiBuffer.start();
-      });
-    }).catch(function (error) {
-      console.warn("Audio problem:", error);
-    });
-  } else {
-    document.querySelector(".error").innerHTML = "<div class='audio-error'>Audio is not supported in this browser.</div>";
-  }
+    let abcString = ABCJS.renderAbc("*", abc)[0];
+
+	var createSynth = new ABCJS.synth.CreateSynth();
+	createSynth.init({ visualObj: abcString }).then(function () {
+		synthControl.setTune(abcString, false, audioParams).then(function () {
+			console.log("Audio successfully loaded.")
+		}).catch(function (error) {
+			console.warn("Audio problem:", error);
+		});
+	}).catch(function (error) {
+		console.warn("Audio problem:", error);
+	});
 }
 
-function stop() {
-  if (midiBuffer) midiBuffer.stop();
+function generateMidiFile() {
+  options = {
+	midiOutputType: "link",
+    // The following OPTIONAL parameters are only used when the type is "link":
+    // downloadClass: "class-name-to-add",
+    // preTextDownload: "text that appears before the link",
+    downloadLabel: "Download MIDI",
+    // postTextDownload: "text that appears after the link",
+    fileName: "pattern"
+}
+  var midi = ABCJS.synth.getMidiFile(compileAbcString(), options);
+  document.getElementById("midi-link").innerHTML = midi;
 }
 
 window.addEventListener("resize", function () {
@@ -453,6 +459,8 @@ function applyPresetFromURL() {
 
 window.onload = function() {
   applyPresetFromURL();
+  loadSynthControl();
+  generateMidiFile();
   drawNotation();
 };
 

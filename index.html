@@ -16,9 +16,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
-  <link src="abcjs-basic.min.js">
+  <link rel="stylesheet" href="./abcjs/abcjs-audio.css">
+  <link src="./abcjs/dist/abcjs-basic.min.js">
 
-  <script src="abcjs-basic.js" type="text/javascript"></script>
+  <script src="./abcjs/dist/abcjs-basic.js" type="text/javascript"></script>
 <script type="text/javascript">
     
 </script>
@@ -45,13 +46,12 @@
         <div class="item">Reverse<input type="checkbox" id="descending" onchange="drawNotation()"></div>
         <div class="item">Compress Range<input type="checkbox" id="compress" onchange="drawNotation()" checked=true></div>
         <div class="item">Permute<input type="checkbox" id="perm" onchange="drawNotation()"></div>
-        <div class="item"><button class="play" onclick="play()">Play</button></div>
-        <div class="item"><button class="stop" onclick="stop()">Stop</button></div>
         <div class="item"><button class="copy" onclick="copyPresetLinkToClipboard()">Copy preset link</button></div>
-
         <!--<div class="item" onclick="load()">Button 1</div>-->
         <!--<div class="item" onclick="loading2()">Generate</div>-->
     </div>
+    <div id="audio"></div>
+    <div id="midi-link"></div>
     <div id="paper"></div>
 
   <script src="script.js"></script>
