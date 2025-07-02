@@ -1,8 +1,8 @@
 # Slonimsky Scale Generator
 
-A generator of musical scales based on the concepts of Nicolas Slonimskys Thesaurus of Scales and Melodic patterns.
+A generator of musical scales based on the concepts of Nicolas Slonimsky's "Thesaurus of Scales and Melodic Patterns".
 
-I used the library abcjs to draw to notation and mange the playback.
+I used the library abcjs to draw to notation and manage the playback.
 
 [Try it here!](https://dingodoppelt.github.io/slonimsky-generator/)
 
@@ -15,3 +15,5 @@ TODO:
 - ~~Permutations~~ ✅
 - Nested patterns (patternize patterns)
 - ~~MIDI File export~~ ✅
+- ~~Presets~~ ✅
+- ~~MIDI file export~~ ✅
