@@ -217,6 +217,9 @@ function coordinatesFromMotiv(itpl, rootCoord) {
       currRootAccidental = negWrap(currRootAccidental + offset, 5);
       currRootNoteLine = negWrap(noteLineTarget, 7);
       currRootOctave = octTarget;
+    } else {
+      currRootNoteLine -= Math.sign(noteLineSteps);
+      i--;
     }
   }
   // console.log(results);
