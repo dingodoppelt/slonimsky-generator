@@ -280,7 +280,7 @@ function convertCoordToAbc(coord) {
  * @returns {array} of notes to be drawn
  */
 
-function generateScale(divisions, start, nodes, interpolation, interpolationInterval) {
+function generateScale(divisions, start, nodes, interpolation, interpolationInterval, direction) {
   
   if (divisions <= 0) return;
   if (nodes <= 0) return;
@@ -290,13 +290,28 @@ function generateScale(divisions, start, nodes, interpolation, interpolationInte
   
   // add the nodes base note to the scale array
   for (i = 0; i < nodes; i++) {
-    
-    scaleArray.push(startingNote + (i * divisions));
+    let tempScaleArray = [];
+    tempScaleArray.push(startingNote + (i * divisions));
     
     // add each of the interpolations to the scale array
     for (x = 0; x < interpolation; x++) {
-      scaleArray.push(startingNote + (i * divisions) + interpolationInterval[x]);
+      tempScaleArray.push(startingNote + (i * divisions) + interpolationInterval[x]);
     }
+    switch (direction) {
+      case 1:
+        tempScaleArray.reverse();
+        break;
+      case 2:
+        if (i % 2 != 0) tempScaleArray.reverse();
+        break;
+      case 3:
+        if (i % 2 === 0) tempScaleArray.reverse();
+        break;
+      case 0:
+      default:
+        break;
+    }
+    scaleArray.push(...tempScaleArray);
   }
   return scaleArray; 
 }
@@ -316,13 +331,14 @@ function compileAbcString() {
   const nodes = parseInt(numberOfNodes.value)
   const interpolation = parseInt(interpolationInput.value)
   const interpolationInterval = [parseInt(interpolationIntervalInput1.value), parseInt(interpolationIntervalInput2.value), parseInt(interpolationIntervalInput3.value), parseInt(interpolationIntervalInput4.value)]
+  const direction = parseInt(directionInput.value)
   
   // Control which interpolation interval inputs the user can edit
   disableInterpolationInputs(interpolation)
   
   // Generate the scale and if reverse is checked, append the reversed array
-  let noteArray = generateScale(divisions, starting, nodes, interpolation, interpolationInterval);
-  if (descending.checked === true) noteArray = noteArray.concat([...noteArray].reverse());
+  let noteArray = generateScale(divisions, starting, nodes, interpolation, interpolationInterval, direction);
+  if (descending.checked === true) noteArray = noteArray.reverse();
   
   // choose sane numbers for linebreaks
   let beams = interpolation + 1;
@@ -494,5 +510,6 @@ const interpolationIntervalInput2 = document.getElementById("interpolation-inter
 const interpolationIntervalInput3 = document.getElementById("interpolation-interval-input3");
 const interpolationIntervalInput4 = document.getElementById("interpolation-interval-input4");
 const descending = document.getElementById("descending");
+const directionInput = document.getElementById("direction-input");
 const compress = document.getElementById("compress");
 const perm = document.getElementById("perm");

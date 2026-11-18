@@ -44,6 +44,12 @@
             <input type="number" id="interpolation-interval-input4" onchange="drawNotation()" value="1"  min="-24" max="24">
         </div>
         <div class="item">Reverse<input type="checkbox" id="descending" onchange="drawNotation()"></div>
+        <div class="item">Direction<select id="direction-input" onchange="drawNotation()">
+            <option value="0" selected>Forward</option>
+            <option value="1">Backward</option>
+            <option value="2">Ping-Pong</option>
+            <option value="3">Pong-Ping</option></select>
+        </div>
         <div class="item">Compress Range<input type="checkbox" id="compress" onchange="drawNotation()" checked=true></div>
         <div class="item">Permute<input type="checkbox" id="perm" onchange="drawNotation()"></div>
         <div class="item"><button class="copy" onclick="copyPresetLinkToClipboard()">Copy preset link</button></div>
