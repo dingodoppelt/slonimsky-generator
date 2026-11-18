@@ -211,21 +211,31 @@ function coordinatesFromMotiv(itpl, rootCoord) {
     let offset = midiNumTarget - peekTargetMidi;
     // console.log("Root: " + rootMidi + "\nTarget: " + midiNumTarget + "\nEstimate: " + peekTargetMidi +"\nError: " + offset + "\n");
     // console.log(offset);
-    let midiGuess = midiNotes[negWrap(noteLineTarget, 7)][negWrap(currRootAccidental + offset, 5)];
+    let targetAccidental = currRootAccidental + offset;
+    if (targetAccidental < 0) {
+      if (noteLineTarget == 0) noteLineTarget += 7;
+      noteLineTarget--;
+      octTarget--;
+    }
+    if (targetAccidental > 4) {
+      if (noteLineTarget == 6) noteLineTarget -= 7;
+      noteLineTarget++;
+      octTarget++;
+    }
+    let midiGuess = midiNotes[negWrap(noteLineTarget, 7)][targetAccidental];
     if (midiGuess === midiNumTarget % 12) {
-      results.push([negWrap(noteLineTarget, 7), negWrap(currRootAccidental + offset, 5), octTarget]);
+      results.push([negWrap(noteLineTarget, 7), targetAccidental, octTarget]);
       rootMidi = midiNumTarget;
-      currRootAccidental = negWrap(currRootAccidental + offset, 5);
+      currRootAccidental = targetAccidental;
       currRootNoteLine = negWrap(noteLineTarget, 7);
       currRootOctave = octTarget;
     } else {
-      if (++tries >= 3) return results;
-      currRootNoteLine -= (tries % 2 != 0) ? tries : -tries;;
-      // console.log(currRootNoteLine);
+      if (++tries > 3) continue;
+      currRootNoteLine--;
       i--;
     }
   }
-  console.log(results);
+  // console.log(results);
   return results;
 }
 
