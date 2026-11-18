@@ -282,7 +282,7 @@ function convertCoordToAbc(coord) {
 
 function generateScale(divisions, start, nodes, interpolation, interpolationInterval, direction) {
   
-  if (divisions <= 0) return;
+  // if (divisions <= 0) return;
   if (nodes <= 0) return;
   
   let scaleArray = [];
