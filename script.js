@@ -65,7 +65,7 @@ function convertToAbcString(data, beams, breaks) {
       }
       if (compress.checked === true) {
         if (motiv[j] > 78) oor++;
-        if (motiv[j] < 41) oor--;
+        if (motiv[j] < 45) oor--;
       }
       stringBuf += converted;
       
