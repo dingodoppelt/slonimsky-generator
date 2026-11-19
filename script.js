@@ -209,29 +209,41 @@ function coordinatesFromMotiv(itpl, rootCoord) {
     peekTargetMidi = midiNotes[negWrap(noteLineTarget, 7)][currRootAccidental] + octTarget * 12;
     // console.log(peekTargetMidi);
     let offset = midiNumTarget - peekTargetMidi;
-    // console.log("Root: " + rootMidi + "\nTarget: " + midiNumTarget + "\nEstimate: " + peekTargetMidi +"\nError: " + offset + "\n");
     // console.log(offset);
     let targetAccidental = currRootAccidental + offset;
     if (targetAccidental < 0) {
-      if (noteLineTarget == 0) noteLineTarget += 7;
+      if (noteLineTarget == 0) {
+        noteLineTarget += 7;
+        octTarget--;
+      }
       noteLineTarget--;
-      octTarget--;
+      peekTargetMidi = midiNotes[negWrap(noteLineTarget, 7)][targetAccidental] + octTarget * 12;
+      offset = midiNumTarget - peekTargetMidi;
     }
     if (targetAccidental > 4) {
-      if (noteLineTarget == 6) noteLineTarget -= 7;
+      if (noteLineTarget == 6) {
+        noteLineTarget -= 7;
+        octTarget++;
+      }
       noteLineTarget++;
-      octTarget++;
+      targetAccidental = negWrap(targetAccidental, 5);
+      peekTargetMidi = midiNotes[negWrap(noteLineTarget, 7)][targetAccidental] + octTarget * 12;
+      offset = midiNumTarget - peekTargetMidi;
     }
     let midiGuess = midiNotes[negWrap(noteLineTarget, 7)][targetAccidental];
-    if (midiGuess === midiNumTarget % 12) {
+    // console.log("Root: " + rootMidi + "\nTarget: " + midiNumTarget + "\nEstimate: " + peekTargetMidi +"\nError: " + offset + "\nTargetAccidental: " + targetAccidental + "\nNoteLineTarget: " + negWrap(noteLineTarget, 7));
+    if (negWrap(midiGuess, 12) === midiNumTarget % 12) {
       results.push([negWrap(noteLineTarget, 7), targetAccidental, octTarget]);
       rootMidi = midiNumTarget;
       currRootAccidental = targetAccidental;
       currRootNoteLine = negWrap(noteLineTarget, 7);
       currRootOctave = octTarget;
     } else {
-      if (++tries > 3) continue;
-      currRootNoteLine--;
+      if (++tries > 3) {
+        results.push([negWrap(noteLineTarget, 7), targetAccidental, octTarget]);
+        continue;
+      }
+      currRootNoteLine++;
       i--;
     }
   }
